@@ -1,11 +1,17 @@
 const Task = require("../models/task.model");
 const paginationHelper = require("../../../helpers/pagination");
+const searchHelper = require("../../../helpers/search");
 module.exports.index = async (req, res) => {
   try {
     //  Lọc theo trạng thái
     let find = { deleted: false };
     if (req.query.status) {
       find.status = req.query.status;
+    }
+    // Tìm kiếm bằng keyword
+    const objectSearch = searchHelper(req.query);
+    if (req.query.keyword) {
+      find.title = objectSearch.regex;
     }
     // Phân trang
     const countTasks = await Task.countDocuments(find);

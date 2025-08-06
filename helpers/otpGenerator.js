@@ -2,10 +2,10 @@ const otpGenerator = require("otp-generator");
 const Otp = require("../api/v1/models/otp.model");
 const nodemailer = require("nodemailer");
 
-module.exports.generateAndSendOtp = async (user) => {
+module.exports.generateAndSendOtp = async (userId, subject, email = "") => {
   // Kiểm tra nếu đã có OTP chưa hết hạn
   const existingOtp = await Otp.findOne({
-    userId: user._id,
+    userId: userId,
     expireAt: { $gt: new Date() }, // OTP chưa hết hạn
   });
 
@@ -25,7 +25,7 @@ module.exports.generateAndSendOtp = async (user) => {
 
   // Lưu OTP mới
   await Otp.create({
-    userId: user._id,
+    userId: userId,
     code: otpCode,
     expireAt,
   });
@@ -43,8 +43,8 @@ module.exports.generateAndSendOtp = async (user) => {
 
   const mailOptions = {
     from: "phimanhnamquan@gmail.com",
-    to: user.email,
-    subject: "Mã xác thực đăng ký tài khoản",
+    to: email,
+    subject: subject,
     html: html,
   };
 

@@ -11,7 +11,8 @@ module.exports.register = async (req, res) => {
     };
     const userSave = new User(user);
     await userSave.save();
-    await sendOtp.generateAndSendOtp(userSave);
+    const subject = "Mã xác thực đăng ký tài khoản";
+    await sendOtp.generateAndSendOtp(userSave, subject);
     res.cookie("userId", userSave.id);
     return res.json({
       code: 200,
@@ -85,6 +86,24 @@ module.exports.login = async (req, res) => {
         userToken: user.tokenUser,
       });
     }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+module.exports.forgotPassword = async (req, res) => {
+  try {
+    const email = req.body.email;
+    const user = await User.findOne({
+      email: email,
+    }).select("id");
+    const subject = "Mã xác thực quên mật khẩu";
+    await sendOtp.generateAndSendOtp(user.id, subject, email);
+    return res.json({
+      code: 200,
+      message: "Lấy mã xác thực quên mật khẩu thành công",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Lỗi server" });

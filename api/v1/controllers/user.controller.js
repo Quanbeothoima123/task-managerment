@@ -1,0 +1,66 @@
+const User = require("../models/user.model");
+const Otp = require("../models/otp.model");
+const md5 = require("md5");
+const sendOtp = require("../../../helpers/otpGenerator");
+module.exports.register = async (req, res) => {
+  try {
+    const user = {
+      fullName: req.body.fullName,
+      email: req.body.email,
+      password: md5(req.body.password),
+    };
+    const userSave = new User(user);
+    await userSave.save();
+    await sendOtp.generateAndSendOtp(userSave);
+    res.cookie("userId", userSave.id);
+    return res.json({
+      code: 200,
+      message: "Tạo tài khoản thành công",
+      userId: userSave.id,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+module.exports.auth = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const otpRequest = req.body.otp;
+
+    const otpRecord = await Otp.findOne({ userId }).select("code expireAt");
+
+    if (!otpRecord) {
+      return res
+        .status(400)
+        .json({ message: "OTP không tồn tại hoặc đã hết hạn" });
+    }
+
+    if (otpRecord.expireAt < new Date()) {
+      return res.status(400).json({ message: "Mã OTP đã hết hạn" });
+    }
+
+    if (otpRecord.code !== otpRequest) {
+      return res.status(400).json({ message: "Mã OTP không chính xác" });
+    }
+
+    // Cập nhật trạng thái user
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { status: "active" },
+      { new: true }
+    );
+
+    // Xoá OTP sau khi dùng
+    await Otp.deleteMany({ userId });
+    res.cookie("tokenUser", user.tokenUser);
+    return res.json({
+      code: 200,
+      message: "Xác thực thành công",
+      userToken: user.tokenUser,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};

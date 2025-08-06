@@ -141,10 +141,7 @@ module.exports.changeMulti = async (req, res) => {
         // Cập nhật trạng thái deleted (giả sử value là true/false)
         const deletedValue = value === true || value === "true";
 
-        await Task.updateMany(
-          { _id: { $in: validIds } },
-          { deleted: deletedValue }
-        );
+        await Task.updateMany({ _id: { $in: validIds } }, { deleted: true });
 
         return res.json({
           code: 200,

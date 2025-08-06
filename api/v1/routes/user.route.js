@@ -9,4 +9,5 @@ router.post(
   controller.register
 );
 router.post("/auth/:userId", controller.auth);
+router.post("/login", userValidate.validateLogin, controller.login);
 module.exports = router;

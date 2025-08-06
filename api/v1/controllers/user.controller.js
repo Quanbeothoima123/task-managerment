@@ -64,3 +64,29 @@ module.exports.auth = async (req, res) => {
     res.status(500).json({ message: "Lỗi server" });
   }
 };
+
+module.exports.login = async (req, res) => {
+  try {
+    const email = req.body.email;
+    const password = req.body.password;
+    const user = await User.findOne({
+      email: email,
+    }).select("tokenUser password");
+    if (md5(password) != user.password) {
+      return res.json({
+        code: 400,
+        message: "Sai mật khẩu hoặc tài khoản",
+      });
+    } else {
+      res.cookie("tokenUser", user.tokenUser);
+      return res.json({
+        code: 200,
+        message: "Đăng nhập thành công",
+        userToken: user.tokenUser,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};

@@ -109,3 +109,38 @@ module.exports.forgotPassword = async (req, res) => {
     res.status(500).json({ message: "Lỗi server" });
   }
 };
+
+module.exports.otpPassword = async (req, res) => {
+  try {
+    const email = req.body.email;
+    const otpRequest = req.body.otp;
+    const otpRecord = await Otp.findOne({ email }).select(
+      "code expireAt userId"
+    );
+
+    if (!otpRecord) {
+      return res
+        .status(400)
+        .json({ message: "OTP không tồn tại hoặc đã hết hạn" });
+    }
+
+    if (otpRecord.expireAt < new Date()) {
+      return res.status(400).json({ message: "Mã OTP đã hết hạn" });
+    }
+
+    if (otpRecord.code !== otpRequest) {
+      return res.status(400).json({ message: "Mã OTP không chính xác" });
+    }
+    // Xoá OTP sau khi dùng
+    await Otp.deleteMany({ email });
+    res.cookie("userId", otpRecord.userId);
+    return res.json({
+      code: 200,
+      message: "Xác thực thành công",
+      userId: otpRecord.userId,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};

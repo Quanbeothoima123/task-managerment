@@ -26,6 +26,7 @@ module.exports.generateAndSendOtp = async (userId, subject, email = "") => {
   // Lưu OTP mới
   await Otp.create({
     userId: userId,
+    email: email,
     code: otpCode,
     expireAt,
   });

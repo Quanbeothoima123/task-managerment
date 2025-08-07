@@ -15,4 +15,9 @@ router.post(
   userValidate.validateForgotPassword,
   controller.forgotPassword
 );
+router.post(
+  "/password/otp",
+  userValidate.validateOtpPassword,
+  controller.otpPassword
+);
 module.exports = router;

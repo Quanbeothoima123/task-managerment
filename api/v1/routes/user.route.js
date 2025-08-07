@@ -12,12 +12,17 @@ router.post("/auth/:userId", controller.auth);
 router.post("/login", userValidate.validateLogin, controller.login);
 router.post(
   "/password/forgot",
-  userValidate.validateForgotPassword,
+  userValidate.validateOtpPassword,
   controller.forgotPassword
 );
 router.post(
   "/password/otp",
   userValidate.validateOtpPassword,
   controller.otpPassword
+);
+router.post(
+  "/password/reset",
+  userValidate.validateResetPassword,
+  controller.resetPassword
 );
 module.exports = router;

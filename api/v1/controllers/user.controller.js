@@ -144,3 +144,30 @@ module.exports.otpPassword = async (req, res) => {
     res.status(500).json({ message: "Lỗi server" });
   }
 };
+
+module.exports.resetPassword = async (req, res) => {
+  try {
+    const { userId, password } = req.body;
+    const userRecord = await User.findOne({
+      _id: userId,
+      deleted: false,
+      status: "active",
+    }).select("password tokenUser");
+    if (md5(password) == userRecord.password) {
+      return res.json({
+        code: 400,
+        message: "Mật khẩu này đã được dùng gần đây",
+      });
+    }
+    await userRecord.updateOne({ password: md5(password) });
+    res.cookie("tokenUser", userRecord.tokenUser);
+    return res.json({
+      code: 200,
+      message: "Đổi mật khẩu thành công",
+      tokenUser: userRecord.tokenUser,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
